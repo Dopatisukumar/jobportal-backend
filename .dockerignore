@@ -1,0 +1,7 @@
+target/
+.idea/
+.git/
+*.log
+logs/
+data/
+.mvn/wrapper/maven-wrapper.jar
