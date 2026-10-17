@@ -63,6 +63,9 @@ public class JobPortalSecurityConfig {
     @org.springframework.beans.factory.annotation.Value("${app.cookie.cross-site:false}")
     private boolean crossSiteCookies;
 
+    @org.springframework.beans.factory.annotation.Value("${app.csrf.enabled:true}")
+    private boolean csrfEnabled;
+
     private CookieCsrfTokenRepository csrfTokenRepository() {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         // When the frontend and backend are hosted on different domains, the CSRF
@@ -76,9 +79,18 @@ public class JobPortalSecurityConfig {
 
     @Bean
     SecurityFilterChain customSecurityFilterChain(HttpSecurity http) {
-        return http.csrf(csrfConfig -> csrfConfig
-                        .csrfTokenRepository(csrfTokenRepository())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+        // CSRF cookies cannot be reliably stored cross-site (frontend and backend on
+        // different domains) because browsers block third-party cookies. This app
+        // authenticates with JWT Bearer tokens (not session cookies), so CSRF
+        // protection can be safely disabled in that deployment via app.csrf.enabled=false.
+        if (!csrfEnabled) {
+            http.csrf(csrfConfig -> csrfConfig.disable());
+        } else {
+            http.csrf(csrfConfig -> csrfConfig
+                    .csrfTokenRepository(csrfTokenRepository())
+                    .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
+        }
+        return http
                     .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
                     .authorizeHttpRequests(requests -> {
                         publicPaths.forEach(path -> requests.requestMatchers(path).permitAll());
