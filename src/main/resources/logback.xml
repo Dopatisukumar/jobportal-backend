@@ -46,17 +46,20 @@
     <springProfile name="prod">
         <!-- ===================== -->
         <!-- Root Logger -->
+        <!-- On hosting platforms (Render), logs must go to the CONSOLE (stdout)
+             so the platform can capture them. A file appender on ephemeral
+             disk is invisible and would hide startup errors. -->
         <!-- ===================== -->
-        <root level="ERROR">
-            <appender-ref ref="RollingFile"/>
+        <root level="INFO">
+            <appender-ref ref="Console"/>
         </root>
         <!-- ===================== -->
-        <!-- Application-specific ERROR logs -->
+        <!-- Application-specific logs -->
         <!-- ===================== -->
         <logger name="com.eazybytes.jobportal"
-                level="ERROR"
+                level="INFO"
                 additivity="false">
-            <appender-ref ref="RollingFile"/>
+            <appender-ref ref="Console"/>
         </logger>
     </springProfile>
 
